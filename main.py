@@ -3,7 +3,6 @@ from json import loads
 from os.path import exists
 from pickle import dump, load
 from time import sleep, time
-
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from selenium.webdriver.chrome.service import Service
@@ -80,7 +79,6 @@ class Concert(object):
         self.set_cookie()
 
     def enter_concert(self):
-        self.time_start = time()  # 记录开始时间
         print("###打开浏览器，进入大麦网###")
         if not exists('cookies.pkl'):  # 如果不存在cookie.pkl,就获取一下
             service = Service(self.driver_path)
@@ -97,54 +95,24 @@ class Concert(object):
         mobile_emulation = {"deviceName": "Nexus 6"}
         options.add_experimental_option("prefs", prefs)
         options.add_experimental_option("mobileEmulation", mobile_emulation)
-        # 就是这一行告诉chrome去掉了webdriver痕迹，令navigator.webdriver=false，极其关键
+        # chrome去掉了webdriver痕迹，令navigator.webdriver=false
         options.add_argument("--disable-blink-features=AutomationControlled")
         options.add_argument('--log-level=3')
-
-        # 更换等待策略为不等待浏览器加载完全就进行下一步操作
-        capa = DesiredCapabilities.CHROME
-        # normal, eager, none
-        capa["pageLoadStrategy"] = "eager"
         service = Service(self.driver_path)
         self.driver = webdriver.Chrome(service=service, options=options)
         # 登录到具体抢购页面
         self.login()
         self.driver.refresh()
 
-    def click_util(self, btn, locator):
+    def click_util(self, button, locator):
         while True:
-            btn.click()
+            button.click()
             try:
                 return WebDriverWait(self.driver, 1, 0.1).until(EC.presence_of_element_located(locator))
             except:
                 continue
 
     # 实现购买函数
-
-    # 点击【立即购买】的时候处理弹框
-    def handle_health_info(self):
-        # 检查并处理温馨提示遮罩
-        try:
-            health_info = WebDriverWait(self.driver, 1, 0.1).until(
-                EC.presence_of_element_located((By.CLASS_NAME, 'health-info-content'))
-            )
-            print("---检测到温馨提示遮罩---")
-            health_info_box = health_info.find_element(by=By.ID, value='health-info-html-box')
-            # health_info_button = health_info.find_element(by=By.CSS_SELECTOR,value='.health-info-button')
-            # 模拟向上滑动，阅读温馨提示内容
-            print("---正在模拟向上滑动阅读温馨提示内容---")
-            self.driver.execute_script("arguments[0].scrollIntoView(false);", health_info_box);
-            sleep(0.5)  # 等待滑动完成
-            print("---模拟滑动完成---")
-            # 点击“知道了”按钮
-            print("---正在点击“知道了”按钮---")
-            know_button = health_info.find_element(by=By.CSS_SELECTOR, value='.health-info-button')
-            know_button.click()
-            print("---“知道了”按钮点击成功---")
-        except TimeoutException:
-            print("---不存在温馨提示遮罩---")
-        except NoSuchElementException as e:
-            print(f"***Error: 温馨提示遮罩操作异常：{e}***")
 
     def choose_ticket(self):
         print("###进入抢票界面###")
@@ -162,7 +130,7 @@ class Concert(object):
                 )
             except:
                 raise Exception(u"***Error: 页面加载超时***")
-            
+
             # 判断root元素是否存在
             try:
                 box = WebDriverWait(self.driver, 1, 0.1).until(
@@ -171,34 +139,13 @@ class Concert(object):
             except:
                 raise Exception(u"***Error: 页面中ID为root的整体布局元素不存在或加载超时***")
 
-            # 检查并处理温馨提示遮罩
-            self.handle_health_info()
-
-            # 检查并处理实名制观演提示遮罩
-            try:
-                realname_info = WebDriverWait(self.driver, 1, 0.1).until(
-                    EC.presence_of_element_located((By.CLASS_NAME, 'realname-content'))
-                )
-                print("---检测到实名制观演提示遮罩---")
-                # 点击“知道了”按钮
-                print("---正在点击“知道了”按钮---")
-                known_button = realname_info.find_element(by=By.CLASS_NAME, value='known')
-                known_button.click()
-                print("---“知道了”按钮点击成功---")
-            except TimeoutException:
-                print("---不存在实名制观演提示遮罩---")
-            except NoSuchElementException as e:
-                print(f"***Error: 实名制观演提示遮罩操作异常：{e}***")
-
             try:
                 buybutton = box.find_element(by=By.CSS_SELECTOR, value='.buy-button')
                 buybutton_text = buybutton.text
-                print("---定位购买按钮成功---")
             except Exception as e:
                 try:
                     buybutton = box.find_element(by=By.CSS_SELECTOR, value='.buy__button')
                     buybutton_text = buybutton.text
-                    print("---定位购买按钮成功---")
                 except Exception as e:
                     raise Exception(f"***Error: 定位购买按钮失败***: {e}")
 
@@ -210,18 +157,18 @@ class Concert(object):
                 raise Exception("---已经缺货，刷新等待---")
 
             sleep(0.1)
-            self.handle_health_info()
+            # 点击购买按钮
             buybutton.click()
-            print("---点击购买按钮---")
+            print("###点击购买按钮###")
 
             sleep(0.1)
-            self.handle_health_info()
+            # 等待弹出框出现
             box = WebDriverWait(self.driver, 1, 0.1).until(
                 # EC.presence_of_element_located((By.LINK_TEXT, '立即购买')))
                 EC.presence_of_element_located((By.CSS_SELECTOR, '.sku-pop-wrapper')))
 
             try:
-                # 日期选择
+                # 选择日期
                 toBeClicks = []
                 try:
                     date = WebDriverWait(self.driver, 1, 0.1).until(
@@ -239,7 +186,7 @@ class Concert(object):
                         i.click()
                         sleep(0.05)
 
-                # 选定场次
+                # 选择场次
                 session = WebDriverWait(self.driver, 1, 0.1).until(
                     EC.presence_of_element_located((By.CLASS_NAME, 'sku-times-card')))  # 日期、场次和票档进行定位
                 session_list = session.find_elements(
@@ -249,7 +196,7 @@ class Concert(object):
                 for i in self.session:  # 根据优先级选择一个可行场次
                     if i > len(session_list):
                         i = len(session_list)
-                    j = session_list[i - 1]
+                    j = session_list[i - 1]            
 
                     k = self.isClassPresent(j, 'item-tag', True)
                     if k:  # 如果找到了带presell的类
@@ -376,26 +323,6 @@ class Concert(object):
                     print(f"***Error: 跳转支付宝报错***: {e}")
                     print("尝试重新抢票")
                     return True
-                    # 通过人工判断订单提交状态
-                    # step = input(
-                    #     "\n###\n1.成功跳转到支付宝付款页面\n2.未知，没跳转到支付宝界面，尝试重新抢票\n3.未知，退出脚本\n###\n请输入当前状态：")
-                    # if step == '1':
-                    #     # 成功
-                    #     print("订单提交成功")
-                    #     self.status = 6
-                    #     self.time_end = time()
-                    #     break
-                    # elif step == '2':
-                    #     # 失败，进入下一轮抢票
-                    #     print("尝试重新抢票")
-                    #     return True
-                    # elif step == '3':
-                    #     # 退出脚本
-                    #     print("脚本退出成功")
-                    #     return False
-                    # else:
-                    #     raise Exception(u'***Error: 未知输入***')
-
 
 if __name__ == '__main__':
     try:
@@ -428,7 +355,4 @@ if __name__ == '__main__':
             continue
 
     if con.status == 6:
-        print("###经过%d轮奋斗，耗时%.1f秒，成功为您抢票！请及时确认订单信息并完成支付！###" % (
-            con.num, round(con.time_end - con.time_start, 3)))
         input("按 Enter 键退出脚本")
-        
