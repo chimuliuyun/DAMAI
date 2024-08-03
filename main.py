@@ -317,7 +317,6 @@ class Concert(object):
                         EC.title_contains('支付宝'))
                     print("###订单提交成功###")
                     self.status = 6
-                    self.time_end = time()
                     break
                 except Exception as e:
                     print(f"***Error: 跳转支付宝报错***: {e}")
