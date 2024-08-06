@@ -16,7 +16,7 @@
     "viewer_person": [
         1
     ],
-    "driver_path": "/Users/water/Downloads/dm-main/chromedriver",
+    "driver_path": "/Users/water/Downloads/DAMAI/chromedriver",
     "damai_url": "https://www.damai.cn/",
     "target_url": "https://m.damai.cn/damai/detail/item.html?itemId=811512477184",
     "comment": {
