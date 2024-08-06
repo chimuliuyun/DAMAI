@@ -91,8 +91,8 @@ class Concert(object):
                  "profile.managed_default_content_settings.javascript": 1,
                  'permissions.default.stylesheet': 2}
         mobile_emulation = {"deviceName": "Nexus 6"}
-        options.add_experimental_option("prefs", prefs)
-        options.add_experimental_option("mobileEmulation", mobile_emulation)
+        # options.add_experimental_option("prefs", prefs)
+        # options.add_experimental_option("mobileEmulation", mobile_emulation)
         # chrome去掉了webdriver痕迹，令navigator.webdriver=false
         options.add_argument("--disable-blink-features=AutomationControlled")
         options.add_argument('--log-level=3')
@@ -245,11 +245,11 @@ class Concert(object):
                 if buybutton_text == "":
                     raise Exception(u"***Error: 提交票档按钮文字获取为空,适当调整 sleep 时间***")
 
-                try:
-                    WebDriverWait(self.driver, 1, 0.1).until(
-                        EC.presence_of_element_located((By.CLASS_NAME, 'bui-dm-sku-counter')))
-                except:
-                    raise Exception(u"***购票按钮未开始***")
+                # try:
+                #     WebDriverWait(self.driver, 1, 0.1).until(
+                #         EC.presence_of_element_located((By.CLASS_NAME, 'bui-dm-sku-counter')))
+                # except:
+                #     raise Exception(u"***购票按钮未开始***")
 
             except Exception as e:
                 raise Exception(f"***Error: 选择日期or场次or票档不成功***: {e}")
@@ -258,7 +258,7 @@ class Concert(object):
                 ticket_num_up = box.find_element(
                     by=By.CLASS_NAME, value='plus-enable')
             except:
-                if buybutton_text == "选座购买":  # 选座购买没有增减票数键
+                if buybutton_text == "去选座":  # 选座购买没有增减票数键
                     buybutton.click()
                     self.status = 5
                     print("###请自行选择位置和票价###")
@@ -283,7 +283,7 @@ class Concert(object):
         if self.status in [3, 4, 5]:
             time_to_wait = 0.5 # 如果是重试的话，不需要等待太久
             if not retry: # 重试的时候不需要再次选择
-                time_to_wait = 5 # 如果不是重试的话，等待时间长一点
+                time_to_wait = 30 # 如果不是重试的话，等待时间长一点
                 # 选择观影人
                 toBeClicks = []
                 WebDriverWait(self.driver, time_to_wait, 0.1).until(
