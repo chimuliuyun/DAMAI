@@ -21,10 +21,8 @@
 - 参照config.json。
 
 #### 脚本运行
-```
-git clone
 python main.py
-```
+
 
 
 ## 鸣谢
