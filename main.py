@@ -245,12 +245,6 @@ class Concert(object):
                 if buybutton_text == "":
                     raise Exception(u"***Error: 提交票档按钮文字获取为空,适当调整 sleep 时间***")
 
-                # try:
-                #     WebDriverWait(self.driver, 1, 0.1).until(
-                #         EC.presence_of_element_located((By.CLASS_NAME, 'bui-dm-sku-counter')))
-                # except:
-                #     raise Exception(u"***购票按钮未开始***")
-
             except Exception as e:
                 raise Exception(f"***Error: 选择日期or场次or票档不成功***: {e}")
 
