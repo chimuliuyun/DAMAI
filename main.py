@@ -4,15 +4,13 @@ from os.path import exists
 from pickle import dump, load
 from time import sleep, time
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 
 class Concert(object):
-    def __init__(self, date, session, price, real_name, nick_name, ticket_num, viewer_person, damai_url, target_url,
-                 driver_path):
+    def __init__(self, date, session, price, real_name, nick_name, ticket_num, viewer_person, damai_url, target_url):
         self.date = date  # 日期序号
         self.session = session  # 场次序号优先级
         self.price = price  # 票价序号优先级
@@ -26,7 +24,6 @@ class Concert(object):
         self.nick_name = nick_name  # 用户昵称
         self.damai_url = damai_url  # 大麦网官网网址
         self.target_url = target_url  # 目标购票网址
-        self.driver_path = driver_path  # 浏览器驱动地址
         self.driver = None
 
     def isClassPresent(self, item, name, ret=False):
@@ -79,8 +76,7 @@ class Concert(object):
     def enter_concert(self):
         print("###打开浏览器，进入大麦网###")
         if not exists('cookies.pkl'):  # 如果不存在cookie.pkl,就获取一下
-            service = Service(self.driver_path)
-            self.driver = webdriver.Chrome(service=service)
+            self.driver = webdriver.Chrome()
             self.get_cookie()
             print("###成功获取Cookie，重启浏览器###")
             self.driver.quit()
@@ -96,8 +92,7 @@ class Concert(object):
         # chrome去掉了webdriver痕迹，令navigator.webdriver=false
         options.add_argument("--disable-blink-features=AutomationControlled")
         options.add_argument('--log-level=3')
-        service = Service(self.driver_path)
-        self.driver = webdriver.Chrome(service=service, options=options)
+        self.driver = webdriver.Chrome(options=options)
         # 登录到具体抢购页面
         self.login()
         self.driver.refresh()
@@ -319,10 +314,9 @@ if __name__ == '__main__':
     try:
         with open('./config.json', 'r', encoding='utf-8') as f:
             config = loads(f.read())
-            # params: 场次优先级，票价优先级，实名者序号, 用户昵称， 购买票数， 官网网址， 目标网址, 浏览器驱动地址
+            # params: 场次优先级，票价优先级，实名者序号, 用户昵称， 购买票数， 官网网址， 目标网址
         con = Concert(config['date'], config['sess'], config['price'], config['real_name'], config['nick_name'],
-                      config['ticket_num'], config['viewer_person'], config['damai_url'], config['target_url'],
-                      config['driver_path'])
+                      config['ticket_num'], config['viewer_person'], config['damai_url'], config['target_url'])
         con.enter_concert()  # 进入到具体抢购页面
     except Exception as e:
         print(e)
